@@ -9,44 +9,90 @@ class Piece(Enum):
     FLAGSHIP = 3
 
 class Breakthru:
+    emoji.emojize(":passenger_ship:")
 
     def __init__(self, player):
+        # Define the player's team
         self.player = player # G for GOLD and S for SILVER
-
-        # Define initial state of the game
-
 
         # Define the size of the board
         self.rows = 7
         self.cols = 7  # The board is square
 
+        self.window = tk.Tk()
+        self.window.title(self.__class__.__name__) #Sim, escrever isso como string é mais facil, mas sla, isso tai pra usar né
+        #self.window.geometry("500x500")
+
         # Initialize the board with EMPTY pieces
         self.board = [[Piece.EMPTY for _ in range(self.cols)] for _ in range(self.rows)]
+        #self.buttons = [[None for _ in range(self.cols)] for _ in range(self.rows)]
+
+        buttonSize = 2
+        # Set up the GUI
+        self.buttons = []
+        for i in range(self.rows):
+            row_buttons = []
+            for j in range(self.cols):
+                button = tk.Button(self.window, width=buttonSize*2, height=buttonSize, text=" ", font=("Arial", 32), bg="white",command=lambda l=i, c=j: self.onClickListner(l, c))
+                button.grid(row=i, column=j)
+                row_buttons.append(button)
+            self.buttons.append(row_buttons)
 
         # Set up the GOLD pieces in the middle
         center = self.rows // 2
         for i in range(center - 1, center + 2):
             for j in range(center - 1, center + 2):
                 self.board[i][j] = Piece.GOLD
+                self.buttons[i][j] = self.generate_botton(i, j, Piece.GOLD, self.buttons[i][j])
 
         # Place the FLAGSHIP in the center
         self.board[center][center] = Piece.FLAGSHIP
+        self.buttons[center][center] = self.generate_botton(center, center, Piece.FLAGSHIP, self.buttons[center][center])
 
         # Place the SILVER pieces
         for i in range(0, self.rows):
+            row_buttons = []
             # Primeira e última linhas (índice 0 e 6)
             if i == 0 or i == self.rows - 1:
                 # Coloca as peças SILVER nas colunas 3, 4 e 5
                 for j in [2, 3, 4]:
                     self.board[i][j] = Piece.SILVER
+                    self.buttons[i][j] = self.generate_botton(i, j, Piece.SILVER, self.buttons[i][j])
             # Linhas do meio
             else:
                 # Coloca peças SILVER apenas nas colunas extremas das linhas 3, 4 e 5
                 if i in [2, 3, 4]:
                     self.board[i][0] = Piece.SILVER
                     self.board[i][self.cols - 1] = Piece.SILVER
+                    self.buttons[i][0] = self.generate_botton(i, 0, Piece.SILVER, self.buttons[i][0])
+                    self.buttons[i][self.cols - 1] = self.generate_botton(i, self.cols - 1, Piece.SILVER, self.buttons[i][self.cols - 1])
 
-        self.gui_board()
+        self.window.mainloop()
+
+        #self.gui_board()
+
+    def generate_botton(self, row, col, piece, button=None):
+        buttonSize = 2
+        # Dicionário para mapear os tipos de peças para emojis
+        piece_to_emoji = {
+            Piece.EMPTY: '   ',
+            Piece.SILVER: ":passenger_ship:",
+            Piece.GOLD: ":passenger_ship:",
+            Piece.FLAGSHIP: ":ship:"
+        }
+
+        piece_to_color = {
+            Piece.EMPTY: "white",
+            Piece.SILVER: "silver",
+            Piece.GOLD: "gold",
+            Piece.FLAGSHIP: "yellow"
+        }
+
+        button = tk.Button(self.window, width=buttonSize * 2, height=buttonSize,
+                           text=emoji.emojize(piece_to_emoji[Piece.FLAGSHIP]), font=("Arial", 32), bg=piece_to_color[piece],
+                           command=lambda l=row, c=col: self.onClickListner(l, c))
+        button.grid(row=row, column=col)
+        return button
 
     def print_board(self):
         # Dicionário para mapear os tipos de peças para emojis
@@ -68,46 +114,9 @@ class Breakthru:
             print(f"{i + 1} |" + row_str + '|')
         print('+' + '---+' * self.cols)
 
-
-    def gui_board(self):
-        # Dicionário para mapear os tipos de peças para emojis
-        piece_to_emoji = {
-            Piece.EMPTY: '   ',
-            Piece.SILVER: ":blue_circle:",
-            Piece.GOLD: ":yellow_circle:",
-            Piece.FLAGSHIP: ":red_circle:"
-        }
-
-        #NOTE: Isa, se tu quiseres mudar a cor das peças, muda aqui, da pra usar o nome da cor ou o código hexadecimal (ex: "red" ou "#ff0000")
-        piece_to_color = {
-            Piece.EMPTY: "white",
-            Piece.SILVER: "silver",
-            Piece.GOLD: "gold",
-            Piece.FLAGSHIP: "red"
-        }
-
-        # Cria a janela principal
-        window = tk.Tk()
-        window.title("Breakthru")
-
-        # Cria o tabuleiro
-        for i in range(self.rows):
-            for j in range(self.cols):
-                # Cria um frame para cada peça
-                frame = tk.Frame(
-                    master=window,
-                    relief=tk.RAISED,
-                    borderwidth=1
-                )
-                frame.grid(row=i, column=j)
-
-                # Adiciona um label com o emoji correspondente à peça
-                #label = tk.Label(master=frame, text=emoji.emojize(piece_to_emoji[self.board[i][j]]), font=("Arial", 32))
-                label = tk.Label(master=frame, text='    ', font=("Arial", 32), bg="#ffffff")
-                label.pack()
-
-        # Inicia a janela principal
-        window.mainloop()
+    def onClickListner(self, row, col):
+        print(f"Button clicked at {row}, {col}")
+        self.board[row][col] = Piece.EMPTY
 
 if __name__ == "__main__":
 
