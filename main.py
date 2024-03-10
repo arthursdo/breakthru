@@ -11,7 +11,7 @@ class Piece(Enum):
 class Breakthru:
 
     def __init__(self, player):
-        self.player = player
+        self.player = player # G for GOLD and S for SILVER
 
         # Define initial state of the game
 
@@ -77,7 +77,6 @@ class Breakthru:
             Piece.GOLD: ":yellow_circle:",
             Piece.FLAGSHIP: ":red_circle:"
         }
-
 
         #NOTE: Isa, se tu quiseres mudar a cor das peças, muda aqui, da pra usar o nome da cor ou o código hexadecimal (ex: "red" ou "#ff0000")
         piece_to_color = {
