@@ -15,6 +15,13 @@ class Breakthru:
         # Define the player's team
         self.player = player # G for GOLD and S for SILVER
 
+        #TODO: Implementar a escolha aleatória do jogador inicial
+        self.current_player = player #Define the current player
+
+        # Config variables
+        self.save_click = None # Save the first click to move the piece
+        self.buttonSize = 2 # Size of the buttons in the GUI
+
         # Define the size of the board
         self.rows = 7
         self.cols = 7  # The board is square
@@ -25,16 +32,15 @@ class Breakthru:
 
         # Initialize the board with EMPTY pieces
         self.board = [[Piece.EMPTY for _ in range(self.cols)] for _ in range(self.rows)]
-        #self.buttons = [[None for _ in range(self.cols)] for _ in range(self.rows)]
 
-        buttonSize = 2
         # Set up the GUI
         self.buttons = []
         for i in range(self.rows):
             row_buttons = []
             for j in range(self.cols):
-                button = tk.Button(self.window, width=buttonSize*2, height=buttonSize, text=" ", font=("Arial", 32), bg="white",command=lambda l=i, c=j: self.onClickListner(l, c))
-                button.grid(row=i, column=j)
+                #button = tk.Button(self.window, width=self.buttonSize*2, height=self.buttonSize, text=" ", font=("Arial", 32), bg="white",command=lambda l=i, c=j: self.onClickListner(l, c))
+                #button.grid(row=i, column=j)
+                button = self.generate_botton(i, j, Piece.EMPTY)
                 row_buttons.append(button)
             self.buttons.append(row_buttons)
 
@@ -72,7 +78,7 @@ class Breakthru:
         #self.gui_board()
 
     def generate_botton(self, row, col, piece, button=None):
-        buttonSize = 2
+
         # Dicionário para mapear os tipos de peças para emojis
         piece_to_emoji = {
             Piece.EMPTY: '   ',
@@ -88,7 +94,13 @@ class Breakthru:
             Piece.FLAGSHIP: "yellow"
         }
 
-        button = tk.Button(self.window, width=buttonSize * 2, height=buttonSize,
+        if piece == Piece.EMPTY:
+            button = tk.Button(self.window, width=self.buttonSize * 2, height=self.buttonSize, text=" ",
+                               font=("Arial", 32), bg=piece_to_color[piece], command=lambda l=row, c=col: self.onClickListner(l, c))
+            button.grid(row=row, column=col)
+            return button
+
+        button = tk.Button(self.window, width=self.buttonSize * 2, height=self.buttonSize,
                            text=emoji.emojize(piece_to_emoji[Piece.FLAGSHIP]), font=("Arial", 32), bg=piece_to_color[piece],
                            command=lambda l=row, c=col: self.onClickListner(l, c))
         button.grid(row=row, column=col)
@@ -116,7 +128,31 @@ class Breakthru:
 
     def onClickListner(self, row, col):
         print(f"Button clicked at {row}, {col}")
+
+        if self.save_click  is None:
+            self.save_click=row, col
+
+        elif self.save_click:
+            self.move_piece(self.save_click[0], self.save_click[1], row, col)
+            self.save_click = None
+
+    def move_piece(self, row, col, new_row, new_col):
+        # Verifica se a peça está se movendo para uma posição válida
+        #if not self.is_valid_move(row, col, new_row, new_col):
+        #    print("Movimento inválido!")
+        #    return
+
+        # Move a peça para a nova posição
+        self.board[new_row][new_col] = self.board[row][col]
         self.board[row][col] = Piece.EMPTY
+
+        # Atualiza a interface gráfica
+        self.buttons[new_row][new_col] = self.generate_botton(new_row, new_col, self.board[new_row][new_col], self.buttons[new_row][new_col])
+        self.buttons[row][col] = self.generate_botton(row, col, self.board[row][col], self.buttons[row][col])
+
+
+        # Atualiza a interface gráfica
+        #self.gui_board()
 
 if __name__ == "__main__":
 
