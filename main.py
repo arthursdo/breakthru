@@ -1,6 +1,6 @@
 from enum import Enum
 import tkinter as tk
-
+import emoji
 
 class Piece(Enum):
     EMPTY = 0
@@ -9,7 +9,9 @@ class Piece(Enum):
     FLAGSHIP = 3
 
 class Breakthru:
-    def __init__(self):
+
+    def __init__(self, player):
+        self.player = player
 
         # Define initial state of the game
 
@@ -44,6 +46,7 @@ class Breakthru:
                     self.board[i][0] = Piece.SILVER
                     self.board[i][self.cols - 1] = Piece.SILVER
 
+        self.gui_board()
 
     def print_board(self):
         # Dicionário para mapear os tipos de peças para emojis
@@ -65,6 +68,62 @@ class Breakthru:
             print(f"{i + 1} |" + row_str + '|')
         print('+' + '---+' * self.cols)
 
+
+    def gui_board(self):
+        # Dicionário para mapear os tipos de peças para emojis
+        piece_to_emoji = {
+            Piece.EMPTY: '   ',
+            Piece.SILVER: ":blue_circle:",
+            Piece.GOLD: ":yellow_circle:",
+            Piece.FLAGSHIP: ":red_circle:"
+        }
+
+
+        #NOTE: Isa, se tu quiseres mudar a cor das peças, muda aqui, da pra usar o nome da cor ou o código hexadecimal (ex: "red" ou "#ff0000")
+        piece_to_color = {
+            Piece.EMPTY: "white",
+            Piece.SILVER: "silver",
+            Piece.GOLD: "gold",
+            Piece.FLAGSHIP: "red"
+        }
+
+        # Cria a janela principal
+        window = tk.Tk()
+        window.title("Breakthru")
+
+        # Cria o tabuleiro
+        for i in range(self.rows):
+            for j in range(self.cols):
+                # Cria um frame para cada peça
+                frame = tk.Frame(
+                    master=window,
+                    relief=tk.RAISED,
+                    borderwidth=1
+                )
+                frame.grid(row=i, column=j)
+
+                # Adiciona um label com o emoji correspondente à peça
+                #label = tk.Label(master=frame, text=emoji.emojize(piece_to_emoji[self.board[i][j]]), font=("Arial", 32))
+                label = tk.Label(master=frame, text='    ', font=("Arial", 32), bg="#ffffff")
+                label.pack()
+
+        # Inicia a janela principal
+        window.mainloop()
+
 if __name__ == "__main__":
-    game = Breakthru()
-    game.print_board()
+
+    print("Bem-vindo ao Breakthru!")
+    print("O jogo começa com as peças GOLD no centro e as peças SILVER nas extremidades.")
+    print("O objetivo do jogo é mover o FLAGSHIP para a borda oposta do tabuleiro.")
+    print("As peças SILVER devem capturar o FLAGSHIP antes que ele alcance a borda oposta.")
+    print("O jogador Inicial é escolhido aleatoriamente.")
+    print("Boa sorte!")
+    print("*******************************************************************************")
+    print("Escolha com qual time tu vais jogar: [S]ILVER ou [G]OLD?")
+
+    player = "G"
+    while player not in ["S", "G"]:
+        player = input().upper()
+
+    game = Breakthru(player)
+    #ame.print_board()
