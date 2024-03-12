@@ -333,21 +333,20 @@ class Breakthru:
 
     def minimax_with_alpha_beta(self, depth, alpha, beta, maximizing_player):
         if depth == 0 or self.is_game_over():
-            return self.evaluate(), None
+            return self.evaluate(self.current_player), None
 
-        if maximizing_player == "G":
+        if maximizing_player == self.current_player:
             max_eval = float('-inf')
             best_move = None
             for i in range(self.rows):
                 for j in range(self.cols):
-                    if self.board[i][j] == Piece.GOLD:
+                    if self.board[i][j] == self.current_player:
                         piece_moves = self.get_valid_moves(i, j)
                         for (k, l) in piece_moves:
-                            # Simulação do movimento sem alterar o tabuleiro principal
                             new_board = copy.deepcopy(self.board)
                             self.simulate_move(new_board, i, j, k, l)
-                            eval, _ = self.minimax_with_alpha_beta(depth - 1, alpha, beta, "S")
-                            # Desfazer movimento é desnecessário devido ao uso de deepcopy
+                            eval, _ = self.minimax_with_alpha_beta(depth - 1, alpha, beta,
+                                                                   "S" if self.current_player == "G" else "G")
 
                             if eval > max_eval:
                                 max_eval = eval
@@ -363,13 +362,60 @@ class Breakthru:
             best_move = None
             for i in range(self.rows):
                 for j in range(self.cols):
-                    if self.board[i][j] == Piece.SILVER:
+                    if self.board[i][j] == ("S" if self.current_player == "G" else "G"):
                         piece_moves = self.get_valid_moves(i, j)
                         for (k, l) in piece_moves:
                             new_board = copy.deepcopy(self.board)
                             self.simulate_move(new_board, i, j, k, l)
-                            eval, _ = self.minimax_with_alpha_beta(depth - 1, alpha, beta, "G")
-                            # Desfazer movimento é desnecessário devido ao uso de deepcopy
+                            eval, _ = self.minimax_with_alpha_beta(depth - 1, alpha, beta, self.current_player)
+
+                            if eval < min_eval:
+                                min_eval = eval
+                                best_move = (i, j, k, l)
+                            beta = min(beta, eval)
+                            if beta <= alpha:
+                                break
+                if beta <= alpha:
+                    break
+            return min_eval, best_move
+
+    def minimax_with_alpha_beta(self, depth, alpha, beta, maximizing_player):
+        if depth == 0 or self.is_game_over():
+            return self.evaluate(self.current_player), None
+
+        if maximizing_player == self.current_player:
+            max_eval = float('-inf')
+            best_move = None
+            for i in range(self.rows):
+                for j in range(self.cols):
+                    if self.board[i][j] == self.current_player:
+                        piece_moves = self.get_valid_moves(i, j)
+                        for (k, l) in piece_moves:
+                            new_board = copy.deepcopy(self.board)
+                            self.simulate_move(new_board, i, j, k, l)
+                            eval, _ = self.minimax_with_alpha_beta(depth - 1, alpha, beta,
+                                                                   "S" if self.current_player == "G" else "G")
+
+                            if eval > max_eval:
+                                max_eval = eval
+                                best_move = (i, j, k, l)
+                            alpha = max(alpha, eval)
+                            if beta <= alpha:
+                                break
+                if beta <= alpha:
+                    break
+            return max_eval, best_move
+        else:
+            min_eval = float('inf')
+            best_move = None
+            for i in range(self.rows):
+                for j in range(self.cols):
+                    if self.board[i][j] == ("S" if self.current_player == "G" else "G"):
+                        piece_moves = self.get_valid_moves(i, j)
+                        for (k, l) in piece_moves:
+                            new_board = copy.deepcopy(self.board)
+                            self.simulate_move(new_board, i, j, k, l)
+                            eval, _ = self.minimax_with_alpha_beta(depth - 1, alpha, beta, self.current_player)
 
                             if eval < min_eval:
                                 min_eval = eval
