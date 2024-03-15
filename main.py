@@ -213,7 +213,7 @@ class Breakthru:
 
 
         # Verifica se o jogo acabou
-        if self.is_game_over():
+        if self.is_game_over() and not self.isCopy:
             print("O jogo acabou!")
             self.window.destroy()
             print("Obrigado por jogar!")
@@ -349,38 +349,40 @@ class Breakthru:
 
         if maximizingPlayer:
             maxEval = float('-inf')
-            posible_moves = game.generate_all_possible_moves(game.aiPlayer)
-            best_move = next(iter(posible_moves), None) # Pega o primeiro elemento da lista, se não houver, retorna None
+            best_move = None
+            possible_moves = game.generate_all_possible_moves(game.aiPlayer)
 
-            for move in posible_moves:
+            for move in possible_moves:
                 board_copy = game.copy_game_state()
-                evaluation, moveDepth = game.minimax(board_copy, depth - 1, alpha, beta, False)
+                # Assumindo que move é uma tupla ou lista: (row, col, new_row, new_col)
+                board_copy.move_piece(*move)  # Desempacota os valores de move para os parâmetros da função
+                evaluation, _ = self.minimax(board_copy, depth - 1, alpha, beta, False)
 
-                if evaluation >= maxEval:
+                if evaluation > maxEval:
                     maxEval = evaluation
                     best_move = move
 
                 alpha = max(alpha, evaluation)
-
                 if beta <= alpha:
                     break
 
             return maxEval, best_move
         else:
             minEval = float('inf')
-            posible_moves = game.generate_all_possible_moves(game.current_player)
-            best_move = next(iter(posible_moves), None) # Pega o primeiro elemento da lista, se não houver, retorna None
+            best_move = None
+            possible_moves = game.generate_all_possible_moves(game.current_player)
 
-            for move in posible_moves:
+            for move in possible_moves:
                 board_copy = game.copy_game_state()
-                evaluation, moveDepth = game.minimax(board_copy, depth - 1, alpha, beta, True)
+                # Assumindo que move é uma tupla ou lista: (row, col, new_row, new_col)
+                board_copy.move_piece(*move)  # Desempacota os valores de move para os parâmetros da função
+                evaluation, _ = self.minimax(board_copy, depth - 1, alpha, beta, True)
 
                 if evaluation < minEval:
                     minEval = evaluation
                     best_move = move
 
                 beta = min(beta, evaluation)
-
                 if beta <= alpha:
                     break
 
