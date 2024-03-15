@@ -32,7 +32,7 @@ class Breakthru:
         self.rows = 7
         self.cols = 7  # The board is square
 
-        if not isCopy:
+        if not isCopy: #PTA: Caso seja uma cópia, não mexer na interface
             self.window = tk.Tk()
             self.window.title(self.__class__.__name__) #Sim, escrever isso como string é mais facil, mas sla, isso tai pra usar né
             self.window.title(f"{self.__class__.__name__} - {self.current_player} turn") # Define the title of the window for the current player
@@ -59,7 +59,7 @@ class Breakthru:
 
         # Place the FLAGSHIP in the center
         self.board[center][center] = Piece.FLAGSHIP
-        if not isCopy:
+        if not isCopy: #PTA: Caso seja uma cópia, não mexer na interface
             self.buttons[center][center] = self.generate_botton(center, center, Piece.FLAGSHIP, self.buttons[center][center])
 
         # Place the SILVER pieces
@@ -70,7 +70,7 @@ class Breakthru:
                 # Coloca as peças SILVER nas colunas 3, 4 e 5
                 for j in [2, 3, 4]:
                     self.board[i][j] = Piece.SILVER
-                    if not isCopy:
+                    if not isCopy: #PTA: Caso seja uma cópia, não mexer na interface
                         self.buttons[i][j] = self.generate_botton(i, j, Piece.SILVER, self.buttons[i][j])
             # Linhas do meio
             else:
@@ -78,7 +78,7 @@ class Breakthru:
                 if i in [2, 3, 4]:
                     self.board[i][0] = Piece.SILVER
                     self.board[i][self.cols - 1] = Piece.SILVER
-                    if not isCopy:
+                    if not isCopy: #PTA: Caso seja uma cópia, não mexer na interface
                         self.buttons[i][0] = self.generate_botton(i, 0, Piece.SILVER, self.buttons[i][0])
                         self.buttons[i][self.cols - 1] = self.generate_botton(i, self.cols - 1, Piece.SILVER, self.buttons[i][self.cols - 1])
 
@@ -86,6 +86,7 @@ class Breakthru:
             self.window.mainloop()
 
     def copy_game_state(self):
+        #PTA: Cria uma cópia do jogo atual pois deepcopy por causa do tkinter
         new_game = Breakthru(self.player, isCopy=True)
         new_game.board = copy.deepcopy(self.board)
         new_game.current_player = self.current_player
@@ -94,6 +95,7 @@ class Breakthru:
         return new_game
 
     def generate_botton(self, row, col, piece, button=None):
+        #PTA: Se for uma cópia, não mexer na interface
         if self.isCopy:
             return
 
@@ -200,7 +202,7 @@ class Breakthru:
         self.board[new_row][new_col] = self.board[row][col]
         self.board[row][col] = Piece.EMPTY
 
-        if not self.isCopy:
+        if not self.isCopy:#PTA: Caso seja uma cópia, não mexer na interface
             # Atualiza a interface gráfica
             self.buttons[new_row][new_col] = self.generate_botton(new_row, new_col, self.board[new_row][new_col], self.buttons[new_row][new_col])
             self.buttons[row][col] = self.generate_botton(row, col, self.board[row][col], self.buttons[row][col])
@@ -208,7 +210,7 @@ class Breakthru:
         # Atualiza o jogador atual
         self.current_player = "G" if self.current_player == "S" else "S"
 
-        if not self.isCopy:
+        if not self.isCopy: #PTA: Caso seja uma cópia, não mexer na interface
             self.window.title(f"{self.__class__.__name__} - {self.current_player} turn")
 
 
@@ -350,11 +352,9 @@ class Breakthru:
         if maximizingPlayer:
             maxEval = float('-inf')
             best_move = None
-            possible_moves = game.generate_all_possible_moves(game.aiPlayer)
 
-            for move in possible_moves:
+            for move in game.generate_all_possible_moves(game.current_player):
                 board_copy = game.copy_game_state()
-                # Assumindo que move é uma tupla ou lista: (row, col, new_row, new_col)
                 board_copy.move_piece(*move)  # Desempacota os valores de move para os parâmetros da função
                 evaluation, _ = self.minimax(board_copy, depth - 1, alpha, beta, False)
 
@@ -370,11 +370,9 @@ class Breakthru:
         else:
             minEval = float('inf')
             best_move = None
-            possible_moves = game.generate_all_possible_moves(game.current_player)
 
-            for move in possible_moves:
+            for move in game.generate_all_possible_moves(game.current_player):
                 board_copy = game.copy_game_state()
-                # Assumindo que move é uma tupla ou lista: (row, col, new_row, new_col)
                 board_copy.move_piece(*move)  # Desempacota os valores de move para os parâmetros da função
                 evaluation, _ = self.minimax(board_copy, depth - 1, alpha, beta, True)
 
@@ -388,53 +386,6 @@ class Breakthru:
 
             return minEval, best_move
 
-    def minimax_with_alpha_beta(self, depth, alpha, beta, maximizing_player):
-        if depth == 0 or self.is_game_over():
-            return self.evaluate(self.current_player), None
-
-        if maximizing_player == self.current_player:
-            max_eval = float('-inf')
-            best_move = None
-            for i in range(self.rows):
-                for j in range(self.cols):
-                    if self.board[i][j] == self.current_player:
-                        piece_moves = self.get_valid_moves(i, j)
-                        for (k, l) in piece_moves:
-                            new_board = copy.deepcopy(self.board)
-                            self.simulate_move(new_board, i, j, k, l)
-                            eval, _ = self.minimax_with_alpha_beta(depth - 1, alpha, beta,
-                                                                   "S" if self.current_player == "G" else "G")
-
-                            if eval > max_eval:
-                                max_eval = eval
-                                best_move = (i, j, k, l)
-                            alpha = max(alpha, eval)
-                            if beta <= alpha:
-                                break
-                if beta <= alpha:
-                    break
-            return max_eval, best_move
-        else:
-            min_eval = float('inf')
-            best_move = None
-            for i in range(self.rows):
-                for j in range(self.cols):
-                    if self.board[i][j] == ("S" if self.current_player == "G" else "G"):
-                        piece_moves = self.get_valid_moves(i, j)
-                        for (k, l) in piece_moves:
-                            new_board = copy.deepcopy(self.board)
-                            self.simulate_move(new_board, i, j, k, l)
-                            eval, _ = self.minimax_with_alpha_beta(depth - 1, alpha, beta, self.current_player)
-
-                            if eval < min_eval:
-                                min_eval = eval
-                                best_move = (i, j, k, l)
-                            beta = min(beta, eval)
-                            if beta <= alpha:
-                                break
-                if beta <= alpha:
-                    break
-            return min_eval, best_move
 
     def ai_move(self):
         self.lock_ui()
